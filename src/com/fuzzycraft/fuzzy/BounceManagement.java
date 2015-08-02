@@ -1,5 +1,6 @@
 package com.fuzzycraft.fuzzy;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -49,8 +50,7 @@ public class BounceManagement implements Listener {
 				minPlayers, pointsKill, winGold;
 	private Status status;
 	private boolean active = false;
-	private List<Player> scoreboardPlayers, tiedPlayers;
-	private List<ItemStack> eventItems;
+	private List<Player> scoreboardPlayers;
 	private HashMap<Player, Integer> playerKills = new HashMap<Player, Integer>();
 
 	/**
@@ -68,12 +68,6 @@ public class BounceManagement implements Listener {
 		this.minPlayers = Defaults.MIN_PLAYERS;
 		this.pointsKill = Defaults.POINTS_KILL;
 		this.winGold = Defaults.WIN_GOLD;	
-		this.eventItems.add(new ItemStack(Material.IRON_HELMET, 1));
-		this.eventItems.add(new ItemStack(Material.IRON_LEGGINGS, 1));
-		this.eventItems.add(new ItemStack(Material.IRON_BOOTS, 1));
-		this.eventItems.add(new ItemStack(Material.DIAMOND_SWORD, 1));
-		this.eventItems.add(new ItemStack(Material.BOW, 1));
-		this.eventItems.add(new ItemStack(Material.ARROW, 32));
 	}
 	
 	/**
@@ -87,6 +81,8 @@ public class BounceManagement implements Listener {
 		if (this.active || player.getWorld() != this.world) {
 			return;
 		}
+		
+		this.clearPlayerBoard(player);
 				
 		if (this.status != Status.STARTING) {
 			this.tp.teleportPlayerToStart(player);
@@ -277,10 +273,16 @@ public class BounceManagement implements Listener {
 			Player winner = this.getWinner();
 			
 			// Show everyone their score
-			for (Player player : this.world.getPlayers()) {
+			for (Player player : world.getPlayers()) {
 				player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Your score is " + ChatColor.GREEN + this.getPlayerScore(player) + "!");
-				player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Winner is " + ChatColor.GREEN + winner.getDisplayName() + "!");
+				
+				if (winner != null) {
+					player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Winner is " + ChatColor.GREEN + winner.getDisplayName() + "!");
+				}
+				
+				player.getEquipment().clear();
 				player.getInventory().clear();
+				this.clearPlayerBoard(player);
 			}
 			
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "fe grant " + winner.getName() + " " + this.winGold);
@@ -355,9 +357,14 @@ public class BounceManagement implements Listener {
 		player.setHealth((double) player.getMaxHealth());
 		player.getInventory().clear();
 		
-		for (ItemStack item : this.eventItems) {
-			player.getInventory().addItem(item);
-		}
+		// Event items
+		player.getEquipment().setHelmet(new ItemStack(Material.IRON_HELMET, 1));
+		player.getEquipment().setChestplate(new ItemStack(Material.IRON_CHESTPLATE, 1));
+		player.getEquipment().setLeggings(new ItemStack(Material.IRON_LEGGINGS, 1));
+		player.getEquipment().setBoots(new ItemStack(Material.IRON_BOOTS, 1));
+		player.getInventory().addItem(new ItemStack(Material.DIAMOND_SWORD, 1));
+		player.getInventory().addItem(new ItemStack(Material.BOW, 1));
+		player.getInventory().addItem(new ItemStack(Material.ARROW, 32));
 		
 		this.pl.spawnPlayer(player);
 		this.setPlayerBoard(player);
@@ -405,27 +412,40 @@ public class BounceManagement implements Listener {
 	}
 	
 	/**
+	 * Clear Scoreboard for player.
+	 */
+	public void clearPlayerBoard(Player player) {
+		Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
+		player.setScoreboard(board);
+	}
+	
+	/**
 	 * Return winner of the game.
 	 * @return
 	 */
 	public Player getWinner() {
-		this.tiedPlayers.add(this.world.getPlayers().get(new Random().nextInt(this.world.getPlayers().size())));
+		if (this.world.getPlayers().isEmpty()) {
+			return null;
+		}
+		
+		List<Player> tiedPlayers = new ArrayList<Player>();
+		tiedPlayers.add(this.world.getPlayers().get(new Random().nextInt(this.world.getPlayers().size())));
 		int winnerScore = 0;
 		
 		for (Player player : this.world.getPlayers()) {
 			if ((int) getPlayerScore(player) > winnerScore) {
 				winnerScore = getPlayerScore(player);
-				this.tiedPlayers.clear();
+				tiedPlayers.clear();
 				tiedPlayers.add(player);
 			}
 			
 			if ((int) getPlayerScore(player) == winnerScore) {
 				winnerScore = getPlayerScore(player);
-				this.tiedPlayers.add(player);
+				tiedPlayers.add(player);
 			}
 		}
 		
-		return this.tiedPlayers.get(new Random().nextInt(this.tiedPlayers.size()));
+		return tiedPlayers.get(new Random().nextInt(tiedPlayers.size()));
 	}
 	
 	/**
