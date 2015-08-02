@@ -14,18 +14,17 @@ public class Defaults {
 	public static final int GAME_X = 0;
 	public static final int GAME_Y = 48;
 	public static final int GAME_Z = 0;
-	public static final int MAX_X = 24;
+	public static final int MAX_X = 5;
 	public static final int MAX_Y = 60;
-	public static final int MAX_Z = 24;
-	public static final int MIN_X = -24;
+	public static final int MAX_Z = 5;
+	public static final int MIN_X = -5;
 	public static final int MIN_Y = 60;
-	public static final int MIN_Z = -24;
+	public static final int MIN_Z = -5;
 	public static final int RUNNING_TIME = 120; // In seconds
 	public static final int CLEANING_TIME = 10; // In seconds
 	public static final int STARTING_TIME = 15; // In seconds
 	public static final int MIN_PLAYERS = 2;
 	public static final int POINTS_KILL = 1;
-	public static final int WIN_GOLD = 50;
 	
 	public static final String SPAWN_WORLD = "world";
 	public static final int SPAWN_X = 0;

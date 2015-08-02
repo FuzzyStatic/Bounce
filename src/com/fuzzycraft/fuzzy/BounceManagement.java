@@ -47,7 +47,7 @@ public class BounceManagement implements Listener {
 	private BounceLocation pl;
 	private TeleportPlayers tp;
 	private int runningTime, cleaningTime, startingTime, 
-				minPlayers, pointsKill, winGold;
+				minPlayers, pointsKill;
 	private Status status;
 	private boolean active = false;
 	private List<Player> scoreboardPlayers;
@@ -67,7 +67,6 @@ public class BounceManagement implements Listener {
 		this.startingTime = Defaults.STARTING_TIME;
 		this.minPlayers = Defaults.MIN_PLAYERS;
 		this.pointsKill = Defaults.POINTS_KILL;
-		this.winGold = Defaults.WIN_GOLD;	
 	}
 	
 	/**
@@ -275,6 +274,7 @@ public class BounceManagement implements Listener {
 			// Show everyone their score
 			for (Player player : world.getPlayers()) {
 				player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Your score is " + ChatColor.GREEN + this.getPlayerScore(player) + "!");
+				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "fe grant " + player.getName() + " " + this.getPlayerScore(player));
 				
 				if (winner != null) {
 					player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Winner is " + ChatColor.GREEN + winner.getDisplayName() + "!");
@@ -285,7 +285,6 @@ public class BounceManagement implements Listener {
 				this.clearPlayerBoard(player);
 			}
 			
-			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "fe grant " + winner.getName() + " " + this.winGold);
 			
 			this.clean();
 			return;
