@@ -19,6 +19,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -49,8 +50,9 @@ public class BounceManagement implements Listener {
 	private Status status;
 	private boolean active = false;
 	private List<Player> scoreboardPlayers, tiedPlayers;
+	private List<ItemStack> eventItems;
 	private HashMap<Player, Integer> playerKills = new HashMap<Player, Integer>();
-		
+
 	/**
 	 * Constructor.
 	 * @param plugin
@@ -65,7 +67,13 @@ public class BounceManagement implements Listener {
 		this.startingTime = Defaults.STARTING_TIME;
 		this.minPlayers = Defaults.MIN_PLAYERS;
 		this.pointsKill = Defaults.POINTS_KILL;
-		this.winGold = Defaults.WIN_GOLD;
+		this.winGold = Defaults.WIN_GOLD;	
+		this.eventItems.add(new ItemStack(Material.IRON_HELMET, 1));
+		this.eventItems.add(new ItemStack(Material.IRON_LEGGINGS, 1));
+		this.eventItems.add(new ItemStack(Material.IRON_BOOTS, 1));
+		this.eventItems.add(new ItemStack(Material.DIAMOND_SWORD, 1));
+		this.eventItems.add(new ItemStack(Material.BOW, 1));
+		this.eventItems.add(new ItemStack(Material.ARROW, 32));
 	}
 	
 	/**
@@ -109,8 +117,10 @@ public class BounceManagement implements Listener {
 						
 		if (fromBelow.getBlock().getType() == Material.SLIME_BLOCK) {
 			Vector initialVelocity = player.getVelocity();
-			Vector newVelocity = new Vector(initialVelocity.getX() *2, initialVelocity.getY() * 1.4, initialVelocity.getZ() * 2);
-			player.setVelocity(newVelocity);
+			
+			if (initialVelocity != new Vector(0 ,0 ,0)) {
+				player.setVelocity(new Vector(initialVelocity.getX() + 0.05, initialVelocity.getY() + 0.75, initialVelocity.getZ() + 0.05));
+			}
 		}
 	}
 	
@@ -270,6 +280,7 @@ public class BounceManagement implements Listener {
 			for (Player player : this.world.getPlayers()) {
 				player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Your score is " + ChatColor.GREEN + this.getPlayerScore(player) + "!");
 				player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Winner is " + ChatColor.GREEN + winner.getDisplayName() + "!");
+				player.getInventory().clear();
 			}
 			
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "fe grant " + winner.getName() + " " + this.winGold);
@@ -343,6 +354,11 @@ public class BounceManagement implements Listener {
 		player.setFireTicks(0);
 		player.setHealth((double) player.getMaxHealth());
 		player.getInventory().clear();
+		
+		for (ItemStack item : this.eventItems) {
+			player.getInventory().addItem(item);
+		}
+		
 		this.pl.spawnPlayer(player);
 		this.setPlayerBoard(player);
 	}
@@ -393,7 +409,7 @@ public class BounceManagement implements Listener {
 	 * @return
 	 */
 	public Player getWinner() {
-		this.tiedPlayers = null;
+		this.tiedPlayers.add(this.world.getPlayers().get(new Random().nextInt(this.world.getPlayers().size())));
 		int winnerScore = 0;
 		
 		for (Player player : this.world.getPlayers()) {
