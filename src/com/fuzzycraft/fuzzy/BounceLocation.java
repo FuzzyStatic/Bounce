@@ -5,7 +5,6 @@ import java.util.Random;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import com.fuzzycraft.fuzzy.constants.Defaults;
@@ -50,26 +49,7 @@ public class BounceLocation {
 	}
 	
 	/**
-	 * Spawn specified material at location.
-	 */
-	public void spawnMaterial(Material material, int amount) {
-		for (int i = 0; i < amount; i++) {
-			Location location = this.getRandomLocation();
-			Location materialLocation = new Location(location.getWorld(), location.getX(), location.getY() + 1, location.getZ());
-			
-			if (location.getBlock().getType() != Material.AIR
-					&& location.getBlock().getType() != Material.LAVA 
-					&& location.getBlock().getType() != Material.STATIONARY_LAVA
-					&& materialLocation.getBlock().getType() == Material.AIR) {
-				materialLocation.getBlock().setType(material);
-			} else {
-				i--;
-			}
-		}
-	}
-	
-	/**
-	 * Spawn specified material at location.
+	 * Spawn specified player at location.
 	 */
 	public void spawnPlayer(Player player) {
 		boolean teleport = true;
@@ -89,23 +69,5 @@ public class BounceLocation {
 				teleport = false;
 			}
         } while (teleport);
-	}
-	
-	/**
-	 * Remove all of specified material from world.
-	 */
-	public void removeAll(Material material) {
-		for (double x = this.minX; x <= this.maxX; x++) {
-			for (double y = this.minY; y <= this.maxY; y++) {
-				for (double z = this.minZ; z <= this.maxZ; z++) {
-					Location loc = new Location(this.world, x, y, z);
-					Block block = this.world.getBlockAt(loc);
-					
-					if (block.getType() == material) {
-						block.setType(Material.AIR);
-					}
-				}
-			}
-		}
 	}
 }

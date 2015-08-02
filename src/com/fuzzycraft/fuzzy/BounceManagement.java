@@ -2,12 +2,13 @@ package com.fuzzycraft.fuzzy;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -16,12 +17,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.util.Vector;
 
 import com.fuzzycraft.fuzzy.constants.Defaults;
 import com.fuzzycraft.fuzzy.utilities.TeleportPlayers;
@@ -42,12 +44,11 @@ public class BounceManagement implements Listener {
 	private World world;
 	private BounceLocation pl;
 	private TeleportPlayers tp;
-	private Material material;
-	private int runningTime, cleaningTime, startingTime, minPlayers, materialAmount, materialRemaining, pointsMaterial, pointsKill;
+	private int runningTime, cleaningTime, startingTime, 
+				minPlayers, pointsKill, winGold;
 	private Status status;
 	private boolean active = false;
-	private List<Player> scoreboardPlayers;
-	private HashMap<Player, Integer> playerMaterial = new HashMap<Player, Integer>();
+	private List<Player> scoreboardPlayers, tiedPlayers;
 	private HashMap<Player, Integer> playerKills = new HashMap<Player, Integer>();
 		
 	/**
@@ -59,14 +60,12 @@ public class BounceManagement implements Listener {
 		this.world = world;
 		this.pl = new BounceLocation(this.plugin, this.world);
 		this.tp = new TeleportPlayers(Bounce.spawnWorld, this.world);
-		this.material = Defaults.MATERIAL;
 		this.runningTime = Defaults.RUNNING_TIME;
 		this.cleaningTime = Defaults.CLEANING_TIME;
 		this.startingTime = Defaults.STARTING_TIME;
 		this.minPlayers = Defaults.MIN_PLAYERS;
-		this.materialAmount = Defaults.MATERIAL_AMOUNT;
-		this.pointsMaterial = Defaults.POINTS_EGG;
 		this.pointsKill = Defaults.POINTS_KILL;
+		this.winGold = Defaults.WIN_GOLD;
 	}
 	
 	/**
@@ -95,32 +94,23 @@ public class BounceManagement implements Listener {
 	}
 	
 	/**
-	 * Give catcher random item when he catches catchee.
+	 * Maintain velocity after stepping on slime block.
 	 * @param event
 	 */
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-	public void onPlayerInteract(PlayerInteractEvent event) {
-		if (event.getClickedBlock() == null) {
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onPlayerMovement(PlayerMoveEvent event) {	
+		if (this.status != Status.RUNNING || event.getPlayer().getWorld() != this.world) {
 			return;
 		}
-		
-		Block block = event.getClickedBlock();
+				
 		Player player = event.getPlayer();
-		
-		if (this.status != Status.RUNNING || block.getWorld() != this.world) {
-			return;
-		}
-
-		// Give block breaker a block point.
-		if (block.getType() == this.material) {
-			block.setType(Material.AIR);
-			this.playerMaterial.put(player, this.playerMaterial.get(player) + 1);
-			this.materialRemaining--;
-		}
-		
-		// Update scoreboard.
-        for (Player participants : this.world.getPlayers()) {
-        	this.setPlayerBoard(participants);
+		Location from = event.getFrom();
+		Location fromBelow = new Location(this.world, from.getX(), from.getY()-1, from.getZ());
+						
+		if (fromBelow.getBlock().getType() == Material.SLIME_BLOCK) {
+			Vector initialVelocity = player.getVelocity();
+			Vector newVelocity = new Vector(initialVelocity.getX() *2, initialVelocity.getY() * 1.4, initialVelocity.getZ() * 2);
+			player.setVelocity(newVelocity);
 		}
 	}
 	
@@ -219,10 +209,7 @@ public class BounceManagement implements Listener {
 	 */
 	public void startTimer(int timer) {
 		if (timer <= 0) {
-			cleanHashMap(playerMaterial);
 			cleanHashMap(playerKills);
-			pl.spawnMaterial(material, materialAmount);
-			this.materialRemaining = this.materialAmount;
 			sendMassMessage(world.getPlayers(), Defaults.GAME_TAG + ChatColor.GREEN + " Game on!");
 				
 			for (Player player : this.world.getPlayers()) {
@@ -263,7 +250,6 @@ public class BounceManagement implements Listener {
 	 */
 	public void start() {
 		this.active = true;
-		this.pl.removeAll(material);
 		this.sendMassMessage(this.world.getPlayers(), Defaults.GAME_TAG + ChatColor.DARK_RED + " Game will start in " + ChatColor.GREEN + this.startingTime + " seconds!");		
 		this.status = Status.STARTING;
 		this.startTimer(this.startingTime);
@@ -278,11 +264,15 @@ public class BounceManagement implements Listener {
 		if (timer <= 0) {
 			sendMassMessage(world.getPlayers(), Defaults.GAME_TAG + ChatColor.DARK_RED + " Game is over! Thanks for playing!");
 			
+			Player winner = this.getWinner();
+			
 			// Show everyone their score
-			for (Player player : world.getPlayers()) {
+			for (Player player : this.world.getPlayers()) {
 				player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Your score is " + ChatColor.GREEN + this.getPlayerScore(player) + "!");
-				player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Winner is " + ChatColor.GREEN + this.getWinner() + "!");
+				player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Winner is " + ChatColor.GREEN + winner.getDisplayName() + "!");
 			}
+			
+			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "fe grant " + winner.getName() + " " + this.winGold);
 			
 			this.clean();
 			return;
@@ -328,7 +318,6 @@ public class BounceManagement implements Listener {
 			public void run() {
 				sendMassMessage(world.getPlayers(), Defaults.GAME_TAG + ChatColor.DARK_RED + " You are being teleported back to the hub...");
 				tp.teleportPlayersToSpawn(world.getPlayers());
-				pl.removeAll(material);
 				active = false;
 			}
 			
@@ -363,10 +352,6 @@ public class BounceManagement implements Listener {
 	 * @param map
 	 */
 	public void latePlayer(Player player) {
-		if (this.playerMaterial.get(player) == null) {
-			this.playerMaterial.put(player, 0);
-		}
-		
 		if (this.playerKills.get(player) == null) {
 			this.playerKills.put(player, 0);
 		}
@@ -395,7 +380,6 @@ public class BounceManagement implements Listener {
 		Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
 		Objective objective = board.registerNewObjective("timers", "dummy");
 		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-		objective.setDisplayName(ChatColor.DARK_PURPLE + "Eggs Left: " + ChatColor.GREEN + this.materialRemaining + ChatColor.WHITE + "/" + ChatColor.DARK_GREEN + this.materialAmount);
 		
 		for (Player participant : this.scoreboardPlayers) {
 			objective.getScore(participant.getName().toString()).setScore(getPlayerScore(participant));
@@ -408,23 +392,24 @@ public class BounceManagement implements Listener {
 	 * Return winner of the game.
 	 * @return
 	 */
-	public String getWinner() {
-		Player winner = null;
+	public Player getWinner() {
+		this.tiedPlayers = null;
 		int winnerScore = 0;
 		
 		for (Player player : this.world.getPlayers()) {
-			if ((int) getPlayerScore(player) > winnerScore 
-					|| (
-							(int) getPlayerScore(player) == winnerScore 
-							&& this.playerMaterial.get(player) > this.playerMaterial.get(winner)
-						)
-				) {
+			if ((int) getPlayerScore(player) > winnerScore) {
 				winnerScore = getPlayerScore(player);
-				winner = player;
+				this.tiedPlayers.clear();
+				tiedPlayers.add(player);
+			}
+			
+			if ((int) getPlayerScore(player) == winnerScore) {
+				winnerScore = getPlayerScore(player);
+				this.tiedPlayers.add(player);
 			}
 		}
 		
-		return winner.getDisplayName();
+		return this.tiedPlayers.get(new Random().nextInt(this.tiedPlayers.size()));
 	}
 	
 	/**
@@ -433,8 +418,8 @@ public class BounceManagement implements Listener {
 	 * @return
 	 */
 	public int getPlayerScore(Player player) {
-		if (this.playerMaterial.get(player) != null && this.playerKills.get(player) != null) {
-			return (this.playerMaterial.get(player) * this.pointsMaterial) + (this.playerKills.get(player) * this.pointsKill);
+		if (this.playerKills.get(player) != null) {
+			return (this.playerKills.get(player) * this.pointsKill);
 		} else {
 			return 0;
 		}
