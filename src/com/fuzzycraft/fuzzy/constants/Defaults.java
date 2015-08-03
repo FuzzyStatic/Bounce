@@ -15,10 +15,10 @@ public class Defaults {
 	public static final int GAME_Y = 48;
 	public static final int GAME_Z = 0;
 	public static final int MAX_X = 5;
-	public static final int MAX_Y = 49;
+	public static final int MAX_Y = 300;
 	public static final int MAX_Z = 5;
 	public static final int MIN_X = -5;
-	public static final int MIN_Y = 47;
+	public static final int MIN_Y = 300;
 	public static final int MIN_Z = -5;
 	public static final int RUNNING_TIME = 300; // In seconds
 	public static final int CLEANING_TIME = 10; // In seconds

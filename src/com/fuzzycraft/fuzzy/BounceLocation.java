@@ -59,12 +59,7 @@ public class BounceLocation {
 			Location firstLocation = new Location(location.getWorld(), location.getX(), location.getY() + 1, location.getZ());
 			Location secondLocation = new Location(location.getWorld(), location.getX(), location.getY() + 2, location.getZ());
 				
-			if (location.getBlock().getType() != Material.AIR
-					&& location.getBlock().getType() != Material.LAVA 
-					&& location.getBlock().getType() != Material.STATIONARY_LAVA
-					&& location.getBlock().getType() != Material.LADDER
-					&& firstLocation.getBlock().getType() == Material.AIR
-					&& secondLocation.getBlock().getType() == Material.AIR) {
+			if (firstLocation.getBlock().getType() == Material.AIR && secondLocation.getBlock().getType() == Material.AIR) {
 				player.teleport(firstLocation);
 				teleport = false;
 			}
