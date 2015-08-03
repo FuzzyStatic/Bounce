@@ -81,6 +81,7 @@ public class BounceManagement implements Listener {
 			return;
 		}
 		
+		this.clearItemsAll(player);
 		this.clearPlayerBoard(player);
 				
 		if (this.status != Status.STARTING) {
@@ -114,7 +115,7 @@ public class BounceManagement implements Listener {
 			Vector initialVelocity = player.getVelocity();
 			
 			if (initialVelocity != new Vector(0 ,0 ,0)) {
-				player.setVelocity(new Vector(initialVelocity.getX() + 0.05, initialVelocity.getY() + 0.75, initialVelocity.getZ() + 0.05));
+				player.setVelocity(new Vector(initialVelocity.getX() + 0.05, initialVelocity.getY() + 0.35, initialVelocity.getZ() + 0.05));
 			}
 		}
 	}
@@ -280,8 +281,7 @@ public class BounceManagement implements Listener {
 					player.sendMessage(Defaults.GAME_TAG + ChatColor.DARK_RED + " Winner is " + ChatColor.GREEN + winner.getDisplayName() + "!");
 				}
 				
-				player.getEquipment().clear();
-				player.getInventory().clear();
+				this.clearItemsAll(player);
 				this.clearPlayerBoard(player);
 			}
 			
@@ -402,6 +402,7 @@ public class BounceManagement implements Listener {
 		Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
 		Objective objective = board.registerNewObjective("timers", "dummy");
 		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+		objective.setDisplayName("" + ChatColor.GREEN + ChatColor.BOLD + "BOUNCE");
 		
 		for (Player participant : this.scoreboardPlayers) {
 			objective.getScore(participant.getName().toString()).setScore(getPlayerScore(participant));
@@ -416,6 +417,17 @@ public class BounceManagement implements Listener {
 	public void clearPlayerBoard(Player player) {
 		Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
 		player.setScoreboard(board);
+	}
+	
+	/**
+	 * Clear all items for player.
+	 */
+	public void clearItemsAll(Player player) {
+		player.getEquipment().setHelmet(new ItemStack(Material.AIR));
+		player.getEquipment().setChestplate(new ItemStack(Material.AIR));
+		player.getEquipment().setLeggings(new ItemStack(Material.AIR));
+		player.getEquipment().setBoots(new ItemStack(Material.AIR));
+		player.getInventory().clear();
 	}
 	
 	/**
