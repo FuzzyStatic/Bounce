@@ -115,7 +115,7 @@ public class BounceManagement implements Listener {
 			Vector initialVelocity = player.getVelocity();
 			
 			if (initialVelocity != new Vector(0 ,0 ,0)) {
-				player.setVelocity(new Vector(initialVelocity.getX() + 0.05, initialVelocity.getY() + 0.35, initialVelocity.getZ() + 0.05));
+				player.setVelocity(new Vector(initialVelocity.getX() * 1.5, initialVelocity.getY() + 0.35, initialVelocity.getZ() * 1.5));
 			}
 		}
 	}
@@ -291,7 +291,7 @@ public class BounceManagement implements Listener {
 			return;
 		}
 		
-		if (timer == 15 || timer == 30 || timer == 60 || timer == 90) {
+		if (timer == 15 || timer % 30 == 0) {
 			sendMassMessage(this.world.getPlayers(), Defaults.GAME_TAG + ChatColor.DARK_RED + " Game ends in " + ChatColor.GREEN + timer + " seconds!");
 		}
 		
