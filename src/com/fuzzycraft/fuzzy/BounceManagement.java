@@ -283,6 +283,7 @@ public class BounceManagement implements Listener {
 				
 				this.clearItemsAll(player);
 				this.clearPlayerBoard(player);
+				this.world.getEntities().clear();
 			}
 			
 			
