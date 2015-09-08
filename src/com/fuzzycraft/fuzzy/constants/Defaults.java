@@ -20,9 +20,10 @@ public class Defaults {
 	public static final int MIN_X = -5;
 	public static final int MIN_Y = 300;
 	public static final int MIN_Z = -5;
-	public static final int RUNNING_TIME = 300; // In seconds
+	public static final int RUNNING_TIME = 120; // In seconds
 	public static final int CLEANING_TIME = 10; // In seconds
 	public static final int STARTING_TIME = 15; // In seconds
+	public static final int MAX_PLAYERS = 10;
 	public static final int MIN_PLAYERS = 2;
 	public static final int POINTS_KILL = 10;
 	
@@ -30,6 +31,8 @@ public class Defaults {
 	public static final int SPAWN_X = 0;
 	public static final int SPAWN_Y = 65;
 	public static final int SPAWN_Z = 0;
+	public static final float SPAWN_YAW = (float) -179.4;
+    public static final float SPAWN_PITCH = (float) -1.2;
 	
 	public static final String GAME_TAG = ChatColor.BLUE + "[" + ChatColor.GREEN + "BOUNCE" + ChatColor.BLUE + "]";
 }

@@ -8,6 +8,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.ScoreboardManager;
 
+import com.fuzzycraft.fuzzy.Bounce;
 import com.fuzzycraft.fuzzy.constants.Defaults;
 
 /**
@@ -27,11 +28,8 @@ public class TeleportPlayers {
 	 * Constructor.
 	 * @param plugin
 	 */
-	public TeleportPlayers(World spawnWorld, World gameWorld) {
-		this.spawn = new Location(spawnWorld, 
-				Defaults.SPAWN_X, 
-				Defaults.SPAWN_Y, 
-				Defaults.SPAWN_Z);
+	public TeleportPlayers(World gameWorld) {
+		this.spawn = Bounce.spawn;
 		this.start = new Location(gameWorld, 
 				Defaults.GAME_X, 
 				Defaults.GAME_Y, 
@@ -44,6 +42,7 @@ public class TeleportPlayers {
 	 */
 	public void teleportPlayersToSpawn(List<Player> players) {
 		for (Player player : players) {
+		    GameModeChecker.setSurvival(player);
 			player.setScoreboard(manager.getNewScoreboard());
 			player.teleport(this.spawn);
 		}
