@@ -1,3 +1,11 @@
 name:  Bounce
 main:  com.fuzzycraft.fuzzy.Bounce
 version:  1.0
+commands:
+   quit:
+      description: Leave current game
+      permission: Predator.quit
+permissions:
+   Predator.quit:
+      description: Access to /quit command
+      default: true
